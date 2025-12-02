@@ -6,15 +6,17 @@ fn parse_line(line: &str) -> Result<i32> {
     if line.len() < 2 {
         bail!("line was too short: '{}'", line)
     }
-    let x: i32 = line[1..].parse().map_err(|e| {
+    let x: u32 = line[1..].parse().map_err(|e| {
         anyhow!(
             "failed to parse line as integer ('{}', full line '{line}'): {e}",
             &line[1..]
         )
     })?;
+    // parse as unsigned, then add the sign based on prefix
+    let i = x as i32;
     match line.chars().nth(0).unwrap_or_default() {
-        'L' => Ok(-x),
-        'R' => Ok(x),
+        'L' => Ok(-i),
+        'R' => Ok(i),
         c @ _ => bail!("unexpected line prefix: {}", c),
     }
 }
@@ -71,7 +73,21 @@ pub fn day1_part2() -> usize {
 
 #[cfg(test)]
 mod test {
-    use super::count_crossings;
+    use super::{count_crossings, parse_line};
+
+    #[test]
+    fn test_parse_line() {
+        assert!(matches!(parse_line(""), Err(_)));
+        assert!(matches!(parse_line("L"), Err(_)));
+        assert!(matches!(parse_line("x100"), Err(_)));
+        assert!(matches!(parse_line("L1"), Ok(-1)));
+        assert!(matches!(parse_line("L0"), Ok(0)));
+        assert!(matches!(parse_line("R0"), Ok(0)));
+        assert!(matches!(parse_line("L-1"), Err(_)));
+        assert!(matches!(parse_line("R1100"), Ok(1100)));
+        assert!(matches!(parse_line("R1 10 0"), Err(_)));
+    }
+
     #[test]
     fn test_count_crossings() {
         assert_eq!(count_crossings(50, 1000), 10);
