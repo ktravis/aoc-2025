@@ -56,25 +56,22 @@ pub mod part1 {
 pub mod part2 {
     use itertools::Itertools;
 
-    fn is_id_valid(id: &str) -> bool {
-        if id.len() == 0 {
-            return true;
-        }
-        let mut chars = id[..=id.len() / 2].chars();
-        let mut pattern = vec![chars.next().expect("id is non-empty")];
-        for c in chars {
-            if pattern.len() > id.len() / 2 {
-                return true;
+    fn is_id_valid(id: usize) -> bool {
+        let num_digits = id.ilog10() + 1;
+        for pattern_length in 1..=num_digits / 2 {
+            if num_digits % pattern_length != 0 {
+                continue;
             }
-            if id
-                .chars()
-                .chunks(pattern.len())
-                .into_iter()
-                .all(|chunk| chunk.collect_vec() == pattern)
+            if (1..=num_digits / pattern_length)
+                .map(|rep| {
+                    let scale = 10usize.pow(pattern_length);
+                    let offset = scale.pow(rep - 1);
+                    (id / offset) % scale
+                })
+                .all_equal()
             {
                 return false;
             }
-            pattern.push(c);
         }
         true
     }
@@ -96,7 +93,7 @@ pub mod part2 {
                     .unwrap_or_else(|| panic!("invalid range: '{s}'"));
                 print!("range {start}-{end}: ");
                 for n in start.parse::<usize>().unwrap()..=end.parse::<usize>().unwrap() {
-                    if !is_id_valid(&n.to_string()) {
+                    if !is_id_valid(n) {
                         print!(" {n}");
                         sum += n;
                     }
@@ -108,16 +105,25 @@ pub mod part2 {
 
     #[cfg(test)]
     mod test {
-        use super::is_id_valid;
+        use crate::day2::part2::is_id_valid;
 
         #[test]
-        fn test_is_id_valid() {
-            assert!(!is_id_valid("824824824"));
-            assert!(!is_id_valid("1111"));
-            assert!(is_id_valid("1121"));
-            assert!(!is_id_valid("1212"));
-            assert!(!is_id_valid("11111"));
-            assert!(is_id_valid("12121"));
+        fn test_digits() {
+            assert_eq!(20usize.ilog10(), 1);
+            assert_eq!(2usize.ilog10(), 0);
+            assert_eq!(10usize.ilog10(), 1);
+            assert_eq!(99usize.ilog10(), 1);
+            assert_eq!(100usize.ilog10(), 2);
+        }
+
+        #[test]
+        fn test_is_int_id_valid() {
+            assert!(!is_id_valid(824824824));
+            assert!(!is_id_valid(1111));
+            assert!(is_id_valid(1121));
+            assert!(!is_id_valid(1212));
+            assert!(!is_id_valid(11111));
+            assert!(is_id_valid(12121));
         }
     }
 }
