@@ -1,11 +1,3 @@
-mod day1;
-mod day2;
+use aoc_runner_derive::aoc_main;
 
-mod utils;
-
-fn main() {
-    let start = std::time::Instant::now();
-    day2::part2::run();
-    let duration = std::time::Instant::now() - start;
-    println!("finished in {duration:?}");
-}
+aoc_main! { lib = aoc_2025 }
